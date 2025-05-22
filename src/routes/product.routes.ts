@@ -22,7 +22,7 @@ Router.get(
 )
 
 Router.post(
-    "/products",
+    "/add",
     (req, res, next)=>{
         authentification(req, res, next)
       },
