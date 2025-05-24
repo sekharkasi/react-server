@@ -84,4 +84,29 @@ export class UserController {
     }
   }
 
+
+static async getCustomers(req: Request, res: Response) {
+    const data = cache.get("data");
+    if (data) {
+      console.log("serving from cache");
+      return res.status(200).json({
+        data,
+      });
+    } else {
+      console.log("serving from db");
+      
+      const userRepository = AppDataSource.getRepository(User);
+      const users = await userRepository.find({
+        where:{
+          role:"user"
+        }
+      });
+
+      cache.put("data", users, 6000);
+      return res.status(200).json({
+        data: users,
+      });
+    }
+  }
+
 }

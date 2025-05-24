@@ -45,6 +45,18 @@ Router.get(
   } 
 );
 
+
+Router.get(
+  "/customers",
+  (req, res, next)=>{
+    authentification(req, res, next)
+  },
+  authorization(["admin"]),
+  (req, res)=> {
+    UserController.getCustomers(req, res);
+  } 
+);
+
 Router.post("/signup",  
     (req, res)=> {
         console.log('singup call reached!', req.body);
@@ -70,16 +82,4 @@ Router.post("/login",
           } 
         );
 
-// Router.put(
-//   "/update/:id",
-//   authentification,
-//   authorization(["user", "admin"]),
-//   UserController.updateUser
-// );
-// Router.delete(
-//   "/delete/:id",
-//   authentification,
-//   authorization(["admin"]),
-//   UserController.deleteUser
-// );
 export { Router as userRouter };

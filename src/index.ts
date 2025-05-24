@@ -19,7 +19,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:5173', // 👈 MUST be explicit, no '*'
+  origin: 'http://localhost:5173', 
   credentials: true   
 }));
 
@@ -39,6 +39,8 @@ app.use("/auth", userRouter);
 
 //app.use("/getresponse", userRouter);
 app.use("/product", productRouter);
+
+app.use("/customer", userRouter);
 
 //app.use("/api", movieRouter);
 app.get("*name", (req: Request, res: Response) => {

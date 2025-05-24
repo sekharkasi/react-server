@@ -34,4 +34,42 @@ Router.post(
      } 
 );
 
+
+Router.delete(
+    "/:id",
+    (req, res, next)=>{
+        console.log("products api called AUTENTICATION");
+        authentification(req, res, next)
+      },
+      (req, res, next)=>{
+        console.log("products api called AUTHORIZATION");
+        authorization(["admin"])( req, res, next);
+      },
+      (req, res)=> {
+
+        console.log('get products is calling ');
+        ProductController.deleteProduct(req, res);
+     } 
+)
+
+
+Router.put(
+    "/:id",
+    (req, res, next)=>{
+        console.log("products api called AUTENTICATION");
+        authentification(req, res, next)
+      },
+      (req, res, next)=>{
+        console.log("products api called AUTHORIZATION");
+        authorization(["admin"])( req, res, next);
+      },
+      (req, res)=> {
+
+        console.log('get products is calling ');
+        ProductController.updateProduct(req, res);
+     } 
+)
+
+
+
 export {Router as productRouter}
