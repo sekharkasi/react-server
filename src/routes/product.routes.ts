@@ -21,6 +21,19 @@ Router.get(
      } 
 )
 
+Router.get(
+    "/activeproducts",
+    (req, res, next)=>{
+        console.log("products api called AUTENTICATION");
+        authentification(req, res, next)
+      },
+      (req, res)=> {
+
+        console.log('get products is calling ');
+        ProductController.getActiveProducts(req, res);
+     } 
+)
+
 Router.post(
     "/add",
     (req, res, next)=>{

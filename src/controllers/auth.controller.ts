@@ -25,7 +25,8 @@ export class AuthController {
       const payload = {
         name: user.name, 
         email: user.email,
-        role: user.role
+        role: user.role,
+        id: user.id
       }
 
       const token = encrypt.generateToken(payload);

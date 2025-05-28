@@ -12,11 +12,16 @@ import cookieParser from 'cookie-parser';
 
 //import { movieRouter } from "./routes/movie.routes";
 import "reflect-metadata";
+import { orderRouter } from "./routes/order.routes";
 dotenv.config();
 
 
 
 const app = express();
+
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(cors({
   origin: 'http://localhost:5173', 
@@ -41,6 +46,9 @@ app.use("/auth", userRouter);
 app.use("/product", productRouter);
 
 app.use("/customer", userRouter);
+
+app.use("/order", orderRouter);
+
 
 //app.use("/api", movieRouter);
 app.get("*name", (req: Request, res: Response) => {
