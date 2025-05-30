@@ -21,13 +21,20 @@ export const authentification = (
   if (!token) {
     return res.status(401).json({ message: "Unauthorized" });
   }
-  const decode = jwt.verify(token, process.env.JWT_SECRET);
-  if (!decode) {
+  try {
+    const decode = jwt.verify(token, process.env.JWT_SECRET);
+    
+    if (!decode) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }  
+
+    req["currentUser"] = decode;
+    
+  } catch (error) {
     return res.status(401).json({ message: "Unauthorized" });
   }
-
-  console.log("decode", decode);
-
-  req["currentUser"] = decode;
+  
+  
+  
   next();
 };
