@@ -23,9 +23,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install production dependencies only
-RUN npm ci 
-
-RUN npm run build  # Typically runs `tsc`
+RUN npm ci --omit=dev
 
 
 # Copy built files from builder
