@@ -34,4 +34,4 @@ COPY --from=builder /app/src ./src
 EXPOSE 5000
 
 # Start the application
-CMD ["npm", "run", "start"] 
+CMD ["node", "build/index.js"]
