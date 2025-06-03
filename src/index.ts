@@ -1,4 +1,4 @@
-import { AppDataSource } from "./data-source";
+import { AppDataSource, connectWithRetry } from "./data-source";
 import express from "express";
 import dotenv from "dotenv";
 import { Request, Response } from "express";
@@ -13,6 +13,8 @@ import cookieParser from 'cookie-parser';
 //import { movieRouter } from "./routes/movie.routes";
 import "reflect-metadata";
 import { orderRouter } from "./routes/order.routes";
+
+require('dotenv').config();
 dotenv.config();
 
 
@@ -24,7 +26,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 app.use(cors({
-  origin: 'http://localhost:5173', 
+  origin: 'http://localhost:3000', 
   credentials: true   
 }));
 
@@ -38,7 +40,8 @@ app.use(
 
 app.use(cookieParser());
 
-const { PORT = 3000 } = process.env;
+//const { PORT = 3000 } = process.env;
+const PORT = parseInt(process.env.PORT || "19200", 10);
 
 app.use("/auth", userRouter);
 
@@ -55,12 +58,31 @@ app.get("*name", (req: Request, res: Response) => {
   res.status(505).json({ message: "Bad Request!" });
 });
 
-
+/*
 AppDataSource.initialize()
   .then(async () => {
-    app.listen(PORT, () => {
-      console.log("Server is running on http://localhost:" + PORT);
-    });
-    console.log("Data Source has been initialized!");
+
+    connectWithRetry().then(() => {
+        app.listen(PORT, () => {
+          console.log("Server is running on http://localhost:" + PORT);
+        });
+        console.log("Data Source has been initialized!");
+      }).catch((err) => {
+        console.error('Failed to connect to DB after retries:', err);
+        process.exit(1);
+      });
+
   })
   .catch((error) => console.log(error));
+
+  */
+
+
+  connectWithRetry().then(() => {
+    app.listen( PORT,'0.0.0.0',  () => {
+      console.log(" Server running on http://localhost:" + PORT);
+    });
+  }).catch((err) => {
+    console.error(" Failed to connect to DB after retries:", err);
+    process.exit(1);
+  });

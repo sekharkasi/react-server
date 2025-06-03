@@ -11,6 +11,9 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+COPY .env .env
+
+
 # Build TypeScript code
 RUN npm run build
 

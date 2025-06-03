@@ -9,10 +9,13 @@ import { OrderItem } from "./entity/OrderItem";
 
 dotenv.config();
 
+const MAX_RETRIES = 5;
+const RETRY_DELAY_MS = 2000;
+
 const { DB_HOST, DB_PORT, DB_USERNAME, DB_PASSWORD, DB_DATABASE, NODE_ENV } =
   process.env;
 
-export const AppDataSource = new DataSource({
+const AppDataSource = new DataSource({
   type: "postgres",
   host: DB_HOST,
   port: parseInt(DB_PORT || "5432"),
@@ -27,3 +30,24 @@ export const AppDataSource = new DataSource({
   migrations: [__dirname + "/migration/*.ts"],
   subscribers: [],
 });
+
+async function connectWithRetry(retries = MAX_RETRIES): Promise<void> {
+  while (retries > 0) {
+    try {
+      await AppDataSource.initialize();
+      console.log("DB connection successful");
+      return;
+    } catch (error) {
+      console.error(`DB connection failed. Retries left: ${retries - 1}`, error.message);
+      retries--;
+      if (retries === 0) {
+        console.error("Max retries reached. Exiting.");
+        throw error;
+      }
+      await new Promise((res) => setTimeout(res, RETRY_DELAY_MS));
+    }
+  }
+}
+
+
+export { AppDataSource, connectWithRetry };
