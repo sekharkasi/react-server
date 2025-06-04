@@ -1,17 +1,18 @@
 # -------- Development/Build Stage --------
     FROM node:20-alpine AS builder
 
-    WORKDIR /app
-    
-    # Copy package files
-    COPY package*.json ./
-    
-    # Install ALL dependencies (including dev)
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+ # Install ALL dependencies (including dev)
     # Dev deps (like typescript) are needed for build
     RUN npm ci
     
     # Copy source code
     COPY . .
+
     
     # Build TypeScript code
     RUN npx tsc
