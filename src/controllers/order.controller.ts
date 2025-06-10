@@ -4,59 +4,54 @@ import { Order} from "../entity/Order";
 import { OrderItem} from "../entity/OrderItem";
 import { encrypt } from "../helpers/encrypt";
 import * as cache from "memory-cache";
+import { CartItems } from "../entity/CartItems";
 
 export class OrderController{
 
     static async saveOrder(req: Request, res: Response){
-        const {items} = req.body;
         const currentUser = req["currentUser"];
+        const cartItemRepository = AppDataSource.getRepository(CartItems);
+        const orderRepository = AppDataSource.getRepository(Order);
+        const orderItemRepository = AppDataSource.getRepository(OrderItem);
 
-        console.log("currentUser",currentUser);
+        // 1. Fetch all cart items for the user, including product info
+        const cartItems = await cartItemRepository.find({
+            where: { userId: currentUser.id },
+            relations: ["product"]
+        });
 
-        var total_amount =0;
+        if (!cartItems.length) {
+            return res.status(400).json({ message: "No items in cart" });
+        }
 
-        const orderItems = items.map(i=> {
+        // 2. Prepare order items and calculate total
+        let total_amount = 0;
+        const orderItems = cartItems.map(cartItem => {
             const orderItem = new OrderItem();
-            //orderItem.order_id = savedOrder.id;
-            orderItem.product_id = i.id;
-            orderItem.price_per_unit = i.price_per_unit;
-            orderItem.quantity = i.quantity;
-            total_amount +=  Number(i.price_per_unit) * i.quantity;
+            orderItem.product_id = cartItem.productId;
+            orderItem.price_per_unit = cartItem.product.price_per_unit;
+            orderItem.quantity = cartItem.quantity;
+            total_amount += Number(cartItem.product.price_per_unit) * cartItem.quantity;
             return orderItem;
         });
 
+        // 3. Create and save the order
         const order = new Order();
         order.total_amount = total_amount;
         order.user_id = currentUser.id;
         order.status = "OrderPlaced";
-        //order.order_items = orderItems;
+        const savedOrder = await orderRepository.save(order);
 
-        console.log("order to be saved", order);
-        const OrderDataSource = AppDataSource.getRepository(Order);
-
-        console.log("currentUser.id", currentUser.id);
-
-        console.log("Final Order Before Save", JSON.stringify(order, null, 2));
-
-        const savedOrder = await OrderDataSource.save(order);
-
-        // const savedOrder = await OrderDataSource.save({
-        //      user_id: currentUser.id,
-        //      total_amount: total_amount,
-        //      status: "OrderPlaced",
-        // });
-
-        orderItems.forEach(element => {
-            element.order_id = savedOrder.id;
+        // 4. Assign order_id to each order item and save them
+        orderItems.forEach(item => {
+            item.order_id = savedOrder.id;
         });
+        await orderItemRepository.save(orderItems);
 
-        const OrderItemDataSource = AppDataSource.getRepository(OrderItem);
-        await OrderItemDataSource.save(orderItems);
+        // 5. Clear the user's cart
+        await cartItemRepository.delete({ userId: currentUser.id });
 
-        return res
-                .status(200)
-                .json({message: "Order Created Succesfully", savedOrder});
-
+        return res.status(200).json({ message: "Order Created Successfully", savedOrder });
     }
 
     static async getOrders(req: Request, res: Response) {
