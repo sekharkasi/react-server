@@ -6,6 +6,7 @@ import { User } from "./entity/User";
 import { Product } from "./entity/Product";
 import { Order } from "./entity/Order";
 import { OrderItem } from "./entity/OrderItem";
+import { CartItems } from "./entity/CartItems";
 
 dotenv.config();
 
@@ -26,7 +27,7 @@ const AppDataSource = new DataSource({
   synchronize: NODE_ENV === "dev" ? false : false,
 //logging logs sql command on the treminal
   logging: NODE_ENV === "dev" ? false : false,
-  entities: [User, Product, Order, OrderItem],
+  entities: [User, Product, Order, OrderItem, CartItems],
   migrations: [__dirname + "/migration/*.ts"],
   subscribers: [],
 });

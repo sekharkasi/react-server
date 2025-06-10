@@ -67,17 +67,38 @@ export class OrderController{
             // order: { createdAt: "DESC" }, // optional: sorts by most recent
             // });
 
-           const orders = await AppDataSource
-                            .getRepository(Order)
-                            .createQueryBuilder("order")
-                            .leftJoinAndSelect("order.user", "user")
-                            .leftJoinAndSelect("order.order_items", "order_items")
-                            .leftJoinAndSelect("order_items.product", "Product")
-                            .orderBy("order.createdAt", "DESC")
-                            .getMany();
 
+            if( req["currentUser"].role == "admin"){
 
-            return res.status(200).json({ data: orders });
+                const orders = await AppDataSource
+                                    .getRepository(Order)
+                                    .createQueryBuilder("order")
+                                    .leftJoinAndSelect("order.user", "user")
+                                    .leftJoinAndSelect("order.order_items", "order_items")
+                                    .leftJoinAndSelect("order_items.product", "Product")
+                                    .orderBy("order.createdAt", "DESC")
+                                    .getMany();
+
+                        
+                return res.status(200).json({ data: orders });
+            }
+            else{
+
+                const user_id = req["currentUser"].id;
+
+                const orders = await AppDataSource
+                                    .getRepository(Order)
+                                    .createQueryBuilder("order")
+                                    .leftJoinAndSelect("order.user", "user")
+                                    .leftJoinAndSelect("order.order_items", "order_items")
+                                    .leftJoinAndSelect("order_items.product", "Product")
+                                    .where("order.user_id = :userId", {userId : user_id})
+                                    .orderBy("order.createdAt", "DESC")
+                                    .getMany();
+                        
+                return res.status(200).json({ data: orders });
+
+            }
 
         } catch (error) {
             console.error("Failed to fetch orders:", error);
@@ -102,5 +123,4 @@ export class OrderController{
             return res.status(500).json({ message: "Internal server error" });
         }
     }
-     
 }
