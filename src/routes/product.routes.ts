@@ -83,6 +83,81 @@ Router.put(
      } 
 )
 
+// Product Review Routes
+Router.post(
+    "/reviews",
+    (req, res, next)=>{
+        console.log("product review api called AUTHENTICATION");
+        authentification(req, res, next)
+      },
+      (req, res)=> {
+        console.log('create product review is calling ');
+        ProductController.createProductReview(req, res);
+     } 
+)
 
+Router.get(
+    "/reviews/:product_id",
+    (req, res, next)=>{
+        console.log("product review api called AUTHENTICATION");
+        authentification(req, res, next)
+      },
+      (req, res)=> {
+        console.log('get product reviews is calling ');
+        ProductController.getProductReviews(req, res);
+     } 
+)
+
+Router.get(
+    "/reviews/user/my-reviews",
+    (req, res, next)=>{
+        console.log("user reviews api called AUTHENTICATION");
+        authentification(req, res, next)
+      },
+      (req, res)=> {
+        console.log('get user reviews is calling ');
+        ProductController.getUserReviews(req, res);
+     } 
+)
+
+Router.put(
+    "/reviews/:id",
+    (req, res, next)=>{
+        console.log("update review api called AUTHENTICATION");
+        authentification(req, res, next)
+      },
+      (req, res)=> {
+        console.log('update product review is calling ');
+        ProductController.updateProductReview(req, res);
+     } 
+)
+
+Router.delete(
+    "/reviews/:id",
+    (req, res, next)=>{
+        console.log("delete review api called AUTHENTICATION");
+        authentification(req, res, next)
+      },
+      (req, res)=> {
+        console.log('delete product review is calling ');
+        ProductController.deleteProductReview(req, res);
+     } 
+)
+
+Router.get(
+    "/reviews",
+    (req, res, next)=>{
+        console.log("all reviews api called AUTHENTICATION");
+        authentification(req, res, next)
+      },
+      (req, res, next)=>{
+        console.log("all reviews api called AUTHORIZATION");
+        authorization(["admin"])( req, res, next);
+      },
+      (req, res)=> {
+        console.log('get all reviews is calling ');
+        ProductController.getAllReviews(req, res);
+     } 
+)
 
 export {Router as productRouter}

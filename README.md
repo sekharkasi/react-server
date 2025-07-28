@@ -6,7 +6,7 @@ This project is a full-stack application built with:
 
 Steps to run this project:
 
-## 🚀 Getting Started
+## Getting Started
 
 ### 1. Clone the Repository
 
