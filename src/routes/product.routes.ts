@@ -160,4 +160,16 @@ Router.get(
      } 
 )
 
+Router.get(
+    "/average-rating/:product_id",
+    (req, res, next)=>{
+        console.log("average rating api called AUTHENTICATION");
+        authentification(req, res, next)
+      },
+      (req, res)=> {
+        console.log('get product average rating is calling ');
+        ProductController.getProductAverageRating(req, res);
+     } 
+)
+
 export {Router as productRouter}

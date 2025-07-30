@@ -40,14 +40,35 @@ export class ProductController{
         const productRespository = AppDataSource.getRepository(Product);
         const products = await productRespository.find();
 
-        // const formattedProducts = products.map(product => ({
-        //     ...product, 
-        //     image: product.image? 
-        //             `data:image/png;base64,${product.image.toString('base64')}`  
-        //             : null
-        // }));
+        // Get all product IDs
+        const productIds = products.map(p => p.id);
+        let ratingsMap = {};
+        if (productIds.length > 0) {
+            const reviewRepository = AppDataSource.getRepository(ProductReviews);
+            const ratings = await reviewRepository
+                .createQueryBuilder("review")
+                .select("review.product_id", "product_id")
+                .addSelect("AVG(review.rating)", "averageRating")
+                .addSelect("COUNT(review.id)", "totalReviews")
+                .where("review.product_id IN (:...productIds)", { productIds })
+                .groupBy("review.product_id")
+                .getRawMany();
+            ratingsMap = ratings.reduce((acc, r) => {
+                acc[r.product_id] = {
+                    averageRating: r.averageRating ? Math.round(r.averageRating * 100) / 100 : 0,
+                    totalReviews: parseInt(r.totalReviews) || 0
+                };
+                return acc;
+            }, {});
+        }
+        // Attach ratings to products
+        const formattedProducts = products.map(product => ({
+            ...product,
+            averageRating: ratingsMap[product.id]?.averageRating || 0,
+            totalReviews: ratingsMap[product.id]?.totalReviews || 0
+        }));
 
-        return res.status(200).json({data: products});
+        return res.status(200).json({data: formattedProducts});
     }
 
     static async getActiveProducts(req: Request, res: Response){
@@ -56,15 +77,35 @@ export class ProductController{
             where:{active:true}
         });
 
+        // Get all product IDs
+        const productIds = products.map(p => p.id);
+        let ratingsMap = {};
+        if (productIds.length > 0) {
+            const reviewRepository = AppDataSource.getRepository(ProductReviews);
+            const ratings = await reviewRepository
+                .createQueryBuilder("review")
+                .select("review.product_id", "product_id")
+                .addSelect("AVG(review.rating)", "averageRating")
+                .addSelect("COUNT(review.id)", "totalReviews")
+                .where("review.product_id IN (:...productIds)", { productIds })
+                .groupBy("review.product_id")
+                .getRawMany();
+            ratingsMap = ratings.reduce((acc, r) => {
+                acc[r.product_id] = {
+                    averageRating: r.averageRating ? Math.round(r.averageRating * 100) / 100 : 0,
+                    totalReviews: parseInt(r.totalReviews) || 0
+                };
+                return acc;
+            }, {});
+        }
+        // Attach ratings to products
+        const formattedProducts = products.map(product => ({
+            ...product,
+            averageRating: ratingsMap[product.id]?.averageRating || 0,
+            totalReviews: ratingsMap[product.id]?.totalReviews || 0
+        }));
 
-        //  const formattedProducts = products.map(product => ({
-        //     ...product, 
-        //     image: product.image? 
-        //             `data:image/png;base64,${product.image.toString('base64')}`  
-        //             : null
-        // }));
-
-        return res.status(200).json({data: products});
+        return res.status(200).json({data: formattedProducts});
     }
 
     static async deleteProduct(req: Request, res: Response){
@@ -129,7 +170,7 @@ export class ProductController{
     static async createProductReview(req: Request, res: Response) {
         try {
             const { product_id, rating, review } = req.body;
-            const user_id = req.user?.id; // Assuming user is attached by auth middleware
+            const user_id =  req["currentUser"].id; // Using currentUser property set by auth middleware
 
             if (!user_id) {
                 return res.status(401).json({ message: "User not authenticated" });
@@ -212,7 +253,7 @@ export class ProductController{
 
     static async getUserReviews(req: Request, res: Response) {
         try {
-            const user_id = req.user?.id;
+            const user_id =  req["currentUser"].id;
 
             if (!user_id) {
                 return res.status(401).json({ message: "User not authenticated" });
@@ -237,7 +278,7 @@ export class ProductController{
         try {
             const review_id = req.params.id;
             const { rating, review } = req.body;
-            const user_id = req.user?.id;
+            const user_id =  req["currentUser"].id;
 
             if (!user_id) {
                 return res.status(401).json({ message: "User not authenticated" });
@@ -279,7 +320,7 @@ export class ProductController{
     static async deleteProductReview(req: Request, res: Response) {
         try {
             const review_id = req.params.id;
-            const user_id = req.user?.id;
+            const user_id =  req["currentUser"].id;
 
             if (!user_id) {
                 return res.status(401).json({ message: "User not authenticated" });
@@ -314,6 +355,33 @@ export class ProductController{
 
             return res.status(200).json({ data: reviews });
 
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ message: "Internal server error" });
+        }
+    }
+
+    static async getProductAverageRating(req: Request, res: Response) {
+        try {
+            const { product_id } = req.params;
+
+            if (!product_id) {
+                return res.status(404).json({ message: "Product ID is required" });
+            }
+
+            const reviewRepository = AppDataSource.getRepository(ProductReviews);
+            // Use query builder for efficient aggregation
+            const result = await reviewRepository
+                .createQueryBuilder("review")
+                .select("AVG(review.rating)", "averageRating")
+                .addSelect("COUNT(review.id)", "totalReviews")
+                .where("review.product_id = :product_id", { product_id })
+                .getRawOne();
+
+            const averageRating = result.averageRating ? Math.round(result.averageRating * 100) / 100 : 0;
+            const totalReviews = parseInt(result.totalReviews) || 0;
+
+            return res.status(200).json({ averageRating, totalReviews });
         } catch (error) {
             console.log(error);
             return res.status(500).json({ message: "Internal server error" });
