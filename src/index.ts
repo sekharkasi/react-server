@@ -8,6 +8,7 @@ import {errorHandler} from "./middleware/errorhandler";
 import cors from "cors";
 import cookieParser from 'cookie-parser';
 import cartRouter from "./routes/cart.routes";
+import { aiRouter } from "./routes/ai.routes";
 
 
 
@@ -53,6 +54,7 @@ app.use("/customer", userRouter);
 
 app.use("/order", orderRouter);
 app.use("/cart", cartRouter);
+app.use("/ai", aiRouter);
 
 
 //app.use("/api", movieRouter);
