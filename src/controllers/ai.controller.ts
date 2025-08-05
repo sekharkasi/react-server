@@ -82,6 +82,8 @@ Please provide a comprehensive summary that includes:
 
 Keep the summary professional, balanced, and helpful for potential customers.`;
 
+console.log("PROMPT>>>>>", prompt);
+
             // Call OpenAI API
             const completion = await this.openai.chat.completions.create({
                 model: "gpt-3.5-turbo",
